@@ -1,0 +1,12 @@
+{
+  "name": "[]",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "Package": {
+        "$path": "src"
+      }
+    }
+  }
+}
