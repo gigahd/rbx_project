@@ -126,9 +126,9 @@ fn create_new_single(project_name: &str, project_structure_path: &str, initial_s
     let project_structure = read_project_structure(project_structure_path, project_name)?;
     replace_file_content("default.project.json", project_structure.as_str())?;
     
-    fs::remove_dir(".\\src\\client")?;
-    fs::remove_dir(".\\src\\server")?;
-    fs::remove_dir(".\\src\\shared")?;
+    fs::remove_dir_all(".\\src\\client")?;
+    fs::remove_dir_all(".\\src\\server")?;
+    fs::remove_dir_all(".\\src\\shared")?;
 
     initialize_script(".\\src\\init.luau", initial_script_path)?;
     
