@@ -1,7 +1,8 @@
 local ServerScriptService = game:GetService("ServerScriptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local serviceList = {}
-for _, serviceModule in ServerScriptService.Services:GetChildren() do
+function addService(serviceModule: Instance)
 	if serviceModule:IsA("ModuleScript") then
 		local service = require(serviceModule)
 		if service.init then
@@ -9,6 +10,14 @@ for _, serviceModule in ServerScriptService.Services:GetChildren() do
 		end
 		table.insert(serviceList, service)
 	end
+end
+
+for _, serviceModule in ReplicatedStorage.Shared.SharedServices:GetChildren() do
+	addService(serviceModule)
+end
+
+for _, serviceModule in ServerScriptService.Server.Services:GetChildren() do
+	addService(serviceModule)
 end
 
 for _, service in serviceList do

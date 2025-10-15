@@ -92,6 +92,7 @@ fn create_new_project(project_name: &str, project_structure_path: &str, initial_
 
     create_folder(".\\src\\shared\\Classes")?;
     create_folder(".\\src\\shared\\Services")?;
+    create_folder(".\\src\\shared\\SharedServices")?;
     create_folder(".\\src\\shared\\Modules")?;
 
     let project_structure = read_project_structure(project_structure_path, project_name)?;
