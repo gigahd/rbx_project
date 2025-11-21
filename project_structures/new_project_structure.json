@@ -9,6 +9,9 @@
       },
       "Packages": {
         "$path": "Packages"
+      },
+      "Assets": {
+        "$path": "Assets/Shared"
       }
     },
 
@@ -18,6 +21,11 @@
       },
       "ServerPackages": {
         "$path": "ServerPackages"
+      }
+    },
+    "ServerStorage": {
+      "Assets": {
+        "$path": "Assets/Server"
       }
     },
 

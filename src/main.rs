@@ -81,7 +81,7 @@ fn create_new_project(project_name: &str, project_structure_path: &str, initial_
 
     create_folder("Packages")?;
     create_folder("ServerPackages")?;
-
+    
     fs::remove_file(".\\src\\client\\init.client.luau")?;
     fs::remove_file(".\\src\\server\\init.server.luau")?;
     fs::remove_file(".\\src\\shared\\Hello.luau")?;
@@ -98,8 +98,8 @@ fn create_new_project(project_name: &str, project_structure_path: &str, initial_
     let project_structure = read_project_structure(project_structure_path, project_name)?;
     replace_file_content("default.project.json", project_structure.as_str())?;
 
-    initialize_script(".\\src\\server\\initialize.server.luau", initial_script_paths[0])?;
-    initialize_script(".\\src\\client\\initialize.client.luau", initial_script_paths[1])?;
+    initialize_script(".\\src\\server\\init.server.luau", initial_script_paths[0])?;
+    initialize_script(".\\src\\client\\init.client.luau", initial_script_paths[1])?;
     
     run_command("rojo", ["sourcemap", "default.project.json", "--output", "sourcemap.json"])?;
     
@@ -139,6 +139,10 @@ fn create_new_single(project_name: &str, project_structure_path: &str, initial_s
     
     create_file("selene.toml", "std = \"roblox\"")?;
     create_file("stylua.toml", "")?;
+
+    create_folder("Assets")?;
+    create_folder(".\\Assets\\Shared")?;
+    create_folder(".\\Assets\\Server")?;
 
     replace_file_content(".gitignore", "/*.rbxlx\n/*.rbxlx.lock\n/*.rbxl.lock\nwally.lock\nsourcemap.json\nPackages/\nServerPackages/")?;
     
