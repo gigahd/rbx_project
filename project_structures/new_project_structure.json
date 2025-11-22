@@ -30,7 +30,7 @@
     },
 
     "StarterGui": {
-      "$path": "UI"
+      "$path": "Assets/UI"
     },
 
     "StarterPlayer": {

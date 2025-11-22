@@ -144,7 +144,7 @@ fn create_new_single(project_name: &str, project_structure_path: &str, initial_s
     create_folder(".\\Assets\\Shared")?;
     create_folder(".\\Assets\\Server")?;
 
-    create_folder("UI")?;
+    create_folder(".\\Assets\\UI")?;
 
     replace_file_content(".gitignore", "/*.rbxlx\n/*.rbxlx.lock\n/*.rbxl.lock\nwally.lock\nsourcemap.json\nPackages/\nServerPackages/")?;
     
