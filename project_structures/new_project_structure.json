@@ -29,6 +29,10 @@
       }
     },
 
+    "StarterGui": {
+      "$path": "UI"
+    },
+
     "StarterPlayer": {
       "StarterPlayerScripts": {
         "Client": {
