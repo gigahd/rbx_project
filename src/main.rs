@@ -129,7 +129,7 @@ fn create_new_project(project_name: &str, project_structure_path: &str, initial_
     Ok(())
 }
 
-fn create_new_single(project_name: &str, project_structure_path: &str, initial_script_path: &str) -> std::io::Result<()> {
+fn create_new_single(project_name: &str, project_structure_path: &str, initial_script_path: &str, root_name: &str) -> std::io::Result<()> {
     make_origin_and_move_into(project_name)?;
     
     run_command("rokit", ["init"])?;
@@ -147,7 +147,7 @@ fn create_new_single(project_name: &str, project_structure_path: &str, initial_s
     fs::remove_dir_all(".\\src\\server")?;
     fs::remove_dir_all(".\\src\\shared")?;
 
-    initialize_script(".\\src\\init.luau", initial_script_path)?;
+    initialize_script(format!(".\\src\\{}", root_name).as_str(), initial_script_path)?;
     
     run_command("rojo", ["sourcemap", "default.project.json", "--output", "sourcemap.json"])?;
     
@@ -195,7 +195,11 @@ fn main() -> std::io::Result<()> {
     } else if descriptor_arg_str == "single" {
         project_structures.push("single_project_structure.json");
         initial_scripts.push("InitializePackage.luau");
-        create_new_single(project_name, project_structures.to_str().unwrap(), initial_scripts.to_str().unwrap())?;
+        create_new_single(project_name, project_structures.to_str().unwrap(), initial_scripts.to_str().unwrap(), "init.luau")?;
+    } else if descriptor_arg_str == "plugin" {
+        project_structures.push("plugin_project_structure.json");
+        initial_scripts.push("InitializePlugin.luau");
+        create_new_single(project_name, project_structures.to_str().unwrap(), initial_scripts.to_str().unwrap(), "Plugin.Server.luau")?;
     } else {
         println!("Type needed (new, single)");
         return Ok(());
