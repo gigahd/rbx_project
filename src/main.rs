@@ -1,4 +1,16 @@
-use std::{env::{self, set_current_dir}, ffi::OsStr, fs::{self, OpenOptions}, io::{Read, Write}, process::{Command, Output}};
+use std::{env::{self, set_current_dir}, ffi::OsStr, fs::{self, OpenOptions}, io::{Read, Write}, path::PathBuf, process::{Command, Output}};
+use clap::Parser;
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct CLI {
+    /// Descriptor to select (new, single, plugin)
+    descriptor: String,
+    /// Output path
+    path: PathBuf,
+
+}
+
 
 fn run_command<T>(command: &str, args: T) -> std::io::Result<Output>
 where
@@ -95,6 +107,10 @@ fn create_new_project(project_name: &str, project_structure_path: &str, initial_
     create_folder(".\\src\\shared\\SharedServices")?;
     create_folder(".\\src\\shared\\Modules")?;
 
+    create_folder("Assets")?;
+    create_folder(".\\Assets\\Shared")?;
+    create_folder(".\\Assets\\Server")?;
+
     let project_structure = read_project_structure(project_structure_path, project_name)?;
     replace_file_content("default.project.json", project_structure.as_str())?;
 
@@ -140,10 +156,6 @@ fn create_new_single(project_name: &str, project_structure_path: &str, initial_s
     create_file("selene.toml", "std = \"roblox\"")?;
     create_file("stylua.toml", "")?;
 
-    create_folder("Assets")?;
-    create_folder(".\\Assets\\Shared")?;
-    create_folder(".\\Assets\\Server")?;
-
     create_folder(".\\Assets\\UI")?;
 
     replace_file_content(".gitignore", "/*.rbxlx\n/*.rbxlx.lock\n/*.rbxl.lock\nwally.lock\nsourcemap.json\nPackages/\nServerPackages/")?;
@@ -152,19 +164,7 @@ fn create_new_single(project_name: &str, project_structure_path: &str, initial_s
 }
 
 fn main() -> std::io::Result<()> {
-    let args: Vec<String> = env::args().collect();
-    if args.len() != 3 {
-        println!("Not a valid structure\nrbxproject [new, single] [PROJECT_NAME]");
-        return Ok(());
-    }
-
-    let descriptor_arg = match args.get(1) {
-        Some(x) => x,
-        None => {
-            println!("Type needed (new, single)");
-            return Ok(());
-        }
-    };
+    let args = CLI::parse();
 
     let mut home_dir = env::current_exe()?;
     while !home_dir.ends_with("rbx_project") {
@@ -178,8 +178,8 @@ fn main() -> std::io::Result<()> {
     let mut initial_scripts = home_dir.clone();
     initial_scripts.push("initial_scripts");
 
-    let descriptor_arg_str = descriptor_arg.as_str();
-    let project_name = args.get(2).unwrap().as_str();
+    let descriptor_arg_str = args.descriptor.as_str();
+    let project_name = args.path.to_str().unwrap();
     if descriptor_arg_str == "new" {
         project_structures.push("new_project_structure.json");
         
@@ -204,5 +204,6 @@ fn main() -> std::io::Result<()> {
     }
     //open the current enviorment in code
     run_command("code", ["."])?;
+
     Ok(())
 }
