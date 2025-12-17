@@ -155,9 +155,7 @@ fn create_new_single(project_name: &str, project_structure_path: &str, initial_s
     
     create_file("selene.toml", "std = \"roblox\"")?;
     create_file("stylua.toml", "")?;
-
-    create_folder(".\\Assets\\UI")?;
-
+    
     replace_file_content(".gitignore", "/*.rbxlx\n/*.rbxlx.lock\n/*.rbxl.lock\nwally.lock\nsourcemap.json\nPackages/\nServerPackages/")?;
     
     Ok(())
