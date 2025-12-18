@@ -199,7 +199,7 @@ fn main() -> std::io::Result<()> {
     } else if descriptor_arg_str == "plugin" {
         project_structures.push("plugin_project_structure.json");
         initial_scripts.push("InitializePlugin.luau");
-        create_new_single(project_name, project_structures.to_str().unwrap(), initial_scripts.to_str().unwrap(), "Plugin.Server.luau")?;
+        create_new_single(project_name, project_structures.to_str().unwrap(), initial_scripts.to_str().unwrap(), "Plugin.server.luau")?;
     } else {
         println!("Type needed (new, single)");
         return Ok(());
