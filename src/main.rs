@@ -110,6 +110,7 @@ fn create_new_project(project_name: &str, project_structure_path: &str, initial_
     create_folder("Assets")?;
     create_folder(".\\Assets\\Shared")?;
     create_folder(".\\Assets\\Server")?;
+    create_folder(".\\Assets\\UI")?;
 
     let project_structure = read_project_structure(project_structure_path, project_name)?;
     replace_file_content("default.project.json", project_structure.as_str())?;
