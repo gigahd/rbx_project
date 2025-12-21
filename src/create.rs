@@ -100,7 +100,6 @@ pub fn run_wally_type_handling() -> std::io::Result<()> {
 
 pub fn project(output: &PathBuf, template: &PathBuf) -> std::io::Result<()> {
     
-    println!("{:?}", template);
     let template_config = config::Config::from_toml(&template.join(config::CONFIG_NAME))?;
 
     //Initialize Root
