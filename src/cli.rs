@@ -29,6 +29,10 @@ pub struct ProjectArgs {
     #[arg(short, long, default_value_t = String::from("default"))]
     pub kind: String,
 
+    /// Whether or not the project should be opened in Visual Studio Code
+    #[arg(short, long, default_value_t = true)]
+    pub open_in_code: bool,
+
     /// Output path
     pub path: PathBuf,
 }
@@ -95,6 +99,9 @@ fn get_template_config_file(config_base: &Config) -> std::io::Result<PathBuf> {
 fn handle_new_command(args: ProjectArgs) -> std::io::Result<()> {
     let template = get_template(&args.kind)?;
     create::project(&args.path, &template)?;
+    if args.open_in_code {
+        run_command("code", ["."])?;
+    }
     Ok(())
 }
 
