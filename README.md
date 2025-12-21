@@ -2,7 +2,7 @@
 
 This is just some small code to automate the process of setting up a default project in roblox (I start way too many)
 
-## Sidenote
+## If you want to use this
 
-if anyone but me wants to use this, you need rokit to run it
-(Also this has only been tested with Rojo version 7.5.1)
+- This repo requires the cloned directiory to be called "rbx_project" otherwise it will fail
+- You need rokit as the package manager (In the future I might add support for different ones but for now that's the one I'm using)
