@@ -34,7 +34,7 @@ pub struct Wally {
 }
 
 impl Wally {
-    pub fn from_wally(wally_file: &PathBuf) -> Self {
+    pub fn _from_wally(wally_file: &PathBuf) -> Self {
         let content = fs::read_to_string(wally_file)
             .expect(&format!("Couldn't open file {:?}", wally_file));
 
@@ -94,7 +94,7 @@ impl Wally {
         let shared_string = self::Wally::convert_dependency_list(&self.shared);
         let server_string = self::Wally::convert_dependency_list(&self.server);
         
-        let wally_string = format!("{}\n[dependencies]\n{}\n\n[server-dependencies]\n{}", info, shared_string, server_string);
+        let wally_string = format!("{}\n\n[dependencies]{}\n\n[server-dependencies]{}", info.trim(), shared_string, server_string);
 
         create::file(&PathBuf::from_str("wally.toml").expect("Failed to convert wally.toml to path buffer"), &wally_string)?;
         Ok(())

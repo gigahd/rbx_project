@@ -2,7 +2,7 @@ use std::{env::set_current_dir, ffi::OsStr, fs::{self, OpenOptions}, io::{self, 
 
 use crate::config::{self, Wally};
 
-fn run_command<T>(command: &str, args: T) -> std::io::Result<Output>
+pub fn run_command<T>(command: &str, args: T) -> std::io::Result<Output>
 where
     T: IntoIterator,
     T::Item: AsRef<OsStr>,
@@ -80,7 +80,7 @@ fn folder(folder_name: &PathBuf) -> std::io::Result<()> {
 fn initialize_empty_rojo() -> std::io::Result<()> {
     run_command("rojo", ["init", "--kind", "model"])?;
     //Removes the only created file to just have an empty source
-    let path_buf = PathBuf::from_str(".\\src\\init.luau").expect("Error creating path to init.luau");
+    let path_buf = PathBuf::new().join("src").join("init.luau");
     fs::remove_file(&path_buf)?;
     Ok(())
 }
@@ -88,6 +88,13 @@ fn initialize_empty_rojo() -> std::io::Result<()> {
 fn initialize_wally(wally_dependencies: &Wally) -> std::io::Result<()> {
     run_command("wally", ["init"])?;
     wally_dependencies.write_to_wally(PathBuf::from_str("./wally.toml").expect("Failed to find wally.toml"))?;
+    Ok(())
+}
+
+pub fn run_wally_type_handling() -> std::io::Result<()> {
+    run_command("wally", ["install"])?;
+    run_command("rojo", ["sourcemap", "default.project.json", "--output", "sourcemap.json"])?;
+    run_command("wally-package-types", ["--sourcemap", "sourcemap.json", "Packages/"])?;
     Ok(())
 }
 
@@ -105,10 +112,14 @@ pub fn project(output: &PathBuf, template: &PathBuf) -> std::io::Result<()> {
     template_config.rokit_tools.iter().for_each(|tool| {
         run_command("rokit", ["add", tool]).expect(format!("Failed to add {} as a tool to rokit", tool).as_str());
     });
+    let mut contains_rojo = false;
     if template_config.rokit_tools.contains(&"rojo".to_string()) {
+        contains_rojo = true;
         initialize_empty_rojo()?;
     }
+    let mut contains_wally = false;
     if template_config.rokit_tools.contains(&"wally".to_string()) {
+        contains_wally = true;
         initialize_wally(&template_config.wally)?;
     }
     copy_dir_all(template, ".", match output.file_name() {
@@ -116,6 +127,9 @@ pub fn project(output: &PathBuf, template: &PathBuf) -> std::io::Result<()> {
         None => return Err(Error::new(io::ErrorKind::NotFound, "Can't find file name of path"))
     })?;
 
+    if contains_rojo && contains_wally {
+        run_wally_type_handling()?;
+    }
 
 
     Ok(())
