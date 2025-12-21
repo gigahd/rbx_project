@@ -1,10 +1,10 @@
 {
-  "name": "[]",
+  "name": "{{project_name}}",
   "tree": {
     "$className": "DataModel",
 
     "ReplicatedStorage": {
-      "[]": {
+      "{{project_name}}": {
         "$path": "src"
       }
     }

@@ -1,5 +1,5 @@
 {
-  "name": "[]",
+  "name": "{{project_name}}",
   "tree": {
     "$className": "DataModel",
 

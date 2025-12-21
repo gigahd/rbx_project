@@ -4,7 +4,7 @@
     "$className": "DataModel",
 
     "ServerStorage": {
-      "[]": {
+      "{{project_name}}": {
         "$path": "src"
       }
     }

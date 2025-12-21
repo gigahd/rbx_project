@@ -25,7 +25,7 @@ pub struct ProjectArgs {
     #[arg(value_enum)]
     pub kind: ProjectKind,
 
-	/// Output path
+    /// Output path
     pub path: PathBuf,
 }
 
@@ -76,9 +76,9 @@ fn handle_new_command(args: ProjectArgs) -> std::io::Result<()> {
     let home_dir = get_home_dir()?;
     let template_dir = home_dir.join(TEMPLATES);
     match args.kind {
-        ProjectKind::New => create::project(args.path, template_dir.join("default")),
-        ProjectKind::Plugin => create::project(args.path, template_dir.join("plugin")),
-        ProjectKind::Package => create::project(args.path, template_dir.join("package"))
+        ProjectKind::New => create::project(&args.path, &template_dir.join("default")),
+        ProjectKind::Plugin => create::project(&args.path, &template_dir.join("plugin")),
+        ProjectKind::Package => create::project(&args.path, &template_dir.join("package"))
     }?;
     Ok(())
 }
