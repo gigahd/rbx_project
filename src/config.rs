@@ -13,7 +13,7 @@ pub struct WallyDependency {
 }
 
 impl WallyDependency {
-    pub fn from_wally_string(wally_string: String) -> Option<Self> {
+    pub fn from_wally_string(wally_string: &str) -> Option<Self> {
         let (name, origin) = match wally_string.split_once("=") {
             Some(x) => x,
             None => return None,
@@ -34,21 +34,48 @@ pub struct Wally {
 }
 
 impl Wally {
-    pub fn read_from_wally(wally_file: PathBuf) -> Self {
-        let string = fs::read_to_string(wally_file).expect("Couldn't open file");
-        let (_, all_dependencies) = string.split_once("[dependencies]").unwrap();
-        let (shared_dependencies, server_dependencies) = all_dependencies.split_once("[server-dependencies]").unwrap();
-        let mut shared_dependency_list: Vec<WallyDependency> = Vec::new();
+    pub fn from_wally(wally_file: &PathBuf) -> Self {
+        let content = fs::read_to_string(wally_file)
+            .expect(&format!("Couldn't open file {:?}", wally_file));
+
+        const DEPS: &str = "[dependencies]";
+        const SERVER_DEPS: &str = "[server-dependencies]";
+
+        let (shared_dependencies, server_dependencies) = match (content.find(DEPS), content.find(SERVER_DEPS)) {
+            // both tags present and [dependencies] appears before [server-dependencies]
+            (Some(deps_pos), Some(server_pos)) if deps_pos < server_pos => {
+                let after_deps = &content[deps_pos + DEPS.len()..];
+                // safe split because we know SERVER_DEPS occurs after DEPS in this branch
+                let (shared, server) = after_deps.split_once(SERVER_DEPS).unwrap();
+                (shared.trim(), server.trim())
+            }
+
+            // only [dependencies] present (or it appears after server tag)
+            (Some(deps_pos), _) => {
+                let after_deps = &content[deps_pos + DEPS.len()..];
+                (after_deps.trim(), "")
+            }
+
+            // only [server-dependencies] present
+            (_, Some(server_pos)) => {
+                let after_server = &content[server_pos + SERVER_DEPS.len()..];
+                ("", after_server.trim())
+            }
+
+            // neither present
+            _ => ("", ""),
+        };
         
+        let mut shared_dependency_list: Vec<WallyDependency> = Vec::new();
         shared_dependencies.trim().lines().for_each(|wally_string| {
             let trimmed_wally = wally_string.trim();
-            shared_dependency_list.push(WallyDependency::from_wally_string(trimmed_wally.to_string()).unwrap()); 
+            shared_dependency_list.push(WallyDependency::from_wally_string(trimmed_wally).unwrap()); 
         });
         let mut server_dependency_list: Vec<WallyDependency> = Vec::new();
 
         server_dependencies.trim().lines().for_each(|wally_string| {
             let trimmed_wally = wally_string.trim();
-            server_dependency_list.push(WallyDependency::from_wally_string(trimmed_wally.to_string()).unwrap()); 
+            server_dependency_list.push(WallyDependency::from_wally_string(trimmed_wally).unwrap()); 
         });
 
         Wally { shared: shared_dependency_list, server: server_dependency_list }
@@ -82,13 +109,13 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn from_toml(path: PathBuf) -> std::io::Result<Self> {
+    pub fn from_toml(path: &PathBuf) -> std::io::Result<Self> {
         let s = fs::read_to_string(path)?;
         let config: Config = toml::from_str(&s).expect("Failed to read config toml file");
         Ok(config)
         
     }
-    pub fn serialize(self: &Self, dir: PathBuf) -> std::io::Result<()> {
+    pub fn serialize(self: &Self, dir: &PathBuf) -> std::io::Result<()> {
         let toml = toml::to_string(&self).expect("Failed to convert config to toml");
         create::file(&dir.join(CONFIG_NAME), toml.as_str())?;
         Ok(())

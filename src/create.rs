@@ -1,4 +1,4 @@
-use std::{env::set_current_dir, ffi::OsStr, fs::{self, OpenOptions}, io::{self, Write}, path::{Path, PathBuf}, process::{Command, Output}, str::FromStr};
+use std::{env::set_current_dir, ffi::OsStr, fs::{self, OpenOptions}, io::{self, Error, Write}, path::{Path, PathBuf}, process::{Command, Output}, str::FromStr};
 
 use crate::config::{self, Wally};
 
@@ -68,29 +68,33 @@ pub fn file(file_name: &PathBuf, file_content: &str) -> std::io::Result<()> {
 }
 
 fn make_origin_and_move_into(main_folder_name: &PathBuf) -> std::io::Result<()> {
-    create_folder(main_folder_name)?;
+    folder(main_folder_name)?;
     set_current_dir(main_folder_name)?;
     Ok(())
 }
 
-fn create_folder(folder_name: &PathBuf) -> std::io::Result<()> {
+fn folder(folder_name: &PathBuf) -> std::io::Result<()> {
     fs::create_dir(folder_name)
 }
 
-fn initialize_rojo() -> std::io::Result<()> {
-    run_command("rojo", ["init"])?;
+fn initialize_empty_rojo() -> std::io::Result<()> {
+    run_command("rojo", ["init", "--kind", "model"])?;
+    //Removes the only created file to just have an empty source
+    let path_buf = PathBuf::from_str(".\\src\\init.luau").expect("Error creating path to init.luau");
+    fs::remove_file(&path_buf)?;
     Ok(())
 }
 
 fn initialize_wally(wally_dependencies: &Wally) -> std::io::Result<()> {
     run_command("wally", ["init"])?;
-    wally_dependencies.write_to_wally(PathBuf::from_str("./wally.toml").expect("Failed to find wally.toml"));
+    wally_dependencies.write_to_wally(PathBuf::from_str("./wally.toml").expect("Failed to find wally.toml"))?;
     Ok(())
 }
 
 pub fn project(output: &PathBuf, template: &PathBuf) -> std::io::Result<()> {
-
-    let template_config = config::Config::from_toml(template.join(config::CONFIG_NAME))?;
+    
+    println!("{:?}", template);
+    let template_config = config::Config::from_toml(&template.join(config::CONFIG_NAME))?;
 
     //Initialize Root
     make_origin_and_move_into(output)?;
@@ -102,12 +106,15 @@ pub fn project(output: &PathBuf, template: &PathBuf) -> std::io::Result<()> {
         run_command("rokit", ["add", tool]).expect(format!("Failed to add {} as a tool to rokit", tool).as_str());
     });
     if template_config.rokit_tools.contains(&"rojo".to_string()) {
-        initialize_rojo()?;
+        initialize_empty_rojo()?;
     }
     if template_config.rokit_tools.contains(&"wally".to_string()) {
         initialize_wally(&template_config.wally)?;
     }
-    
+    copy_dir_all(template, ".", match output.file_name() {
+        Some(x) => x.to_str().unwrap(),
+        None => return Err(Error::new(io::ErrorKind::NotFound, "Can't find file name of path"))
+    })?;
 
 
 

@@ -3,7 +3,7 @@ use std::{env, io::Error, path::PathBuf};
 
 use crate::create;
 
-const TEMPLATES: &str = "./sturctue_templates";
+const TEMPLATES: &str = "structure_templates";
 
 #[derive(Parser, Debug)]
 #[command(name = "rbx_project")]
