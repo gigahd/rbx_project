@@ -1,0 +1,22 @@
+template_name = "default"
+rokit_tools = ["rojo", "wally", "wally-package-types"]
+
+[[wally_shared_dependencies]]
+name = "t"
+origin = "osyrisrblx/t@3.1.1"
+
+[[wally_shared_dependencies]]
+name = "Signal"
+origin = "sleitnick/signal@2.0.3"
+
+[[wally_shared_dependencies]]
+name = "jecs"
+origin = "ukendio/jecs@0.9.0"
+
+[[wally_shared_dependencies]]
+name = "ByteNet"
+origin = "ffrostflame/bytenet@0.4.6"
+
+[[wally_server_dependencies]]
+name = "ProfileStore"
+origin = "lm-loleris/profilestore@1.0.3"
