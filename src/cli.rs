@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use std::{env, io::Error, path::PathBuf};
 
-use crate::{config::{self, CONFIG_NAME, Config, WallyDependency}, create::{self, run_command, run_wally_type_handling}};
+use crate::{config::{self, CONFIG_NAME, Config, Wally, WallyDependency}, create::{self, run_command, run_wally_type_handling}};
 
 const TEMPLATES: &str = "structure_templates";
 
@@ -14,7 +14,7 @@ pub struct Cli {
 #[derive(Subcommand, Debug)]
 pub enum Command {
     /// Create a new Roblox project
-    Init(ProjectArgs),
+    New(ProjectArgs),
 
     /// Manage Wally
     Wally(ConfigArgs),
@@ -106,10 +106,14 @@ fn handle_new_command(args: ProjectArgs) -> std::io::Result<()> {
 }
 
 fn wally_add_dependency(config: &mut Config, name: &String, is_server: &bool) {
+    let wally = match &mut config.wally {
+        Some(x) => x,
+        None => return,
+    };
     let list = if *is_server {
-        &mut config.wally.server
+        &mut wally.server
     } else {
-        &mut config.wally.shared
+        &mut wally.shared
     };
     //Preventing duplicates
     match list.iter().find(|dependency| dependency.name == name.split_once("=").unwrap().0.trim().to_string()) {
@@ -124,10 +128,14 @@ fn wally_add_dependency(config: &mut Config, name: &String, is_server: &bool) {
 }
 
 fn wally_remove_dependency(config: &mut Config, name: &String, is_server: &bool) {
+    let wally = match &mut config.wally {
+        Some(x) => x,
+        None => return,
+    };
     let list = if *is_server {
-        &mut config.wally.server
+        &mut wally.server
     } else {
-        &mut config.wally.shared
+        &mut wally.shared
     };
     let index = match list.iter().position(|dependency| return dependency.name == *name) {
         Some(x) => x,
@@ -161,7 +169,14 @@ fn handle_wally_command(cfg: ConfigArgs) -> std::io::Result<()> {
         }
     }
     config.serialize(&PathBuf::new())?;
-    config.wally.write_to_wally(PathBuf::new().join("wally.toml"))?;
+    let wally = match &mut config.wally {
+        Some(wally) => wally,
+        None => {
+            config.wally = Some(Wally{shared: vec![], server: vec![]});
+            &mut config.wally.unwrap()
+        }
+    };
+    wally.write_to_wally(PathBuf::new().join("wally.toml"))?;
     run_wally_type_handling()?;
     Ok(())
 }
@@ -210,7 +225,7 @@ fn handle_rokit_command(cfg: ConfigArgs) -> std::io::Result<()> {
 
 pub fn handle_cli(cli: Cli) -> std::io::Result<()> {
     match cli.command {
-        Command::Init(args) => handle_new_command(args),
+        Command::New(args) => handle_new_command(args),
         Command::Wally(cfg) => handle_wally_command(cfg),
         Command::Rokit(cfg) => handle_rokit_command(cfg),
     }

@@ -105,7 +105,7 @@ impl Wally {
 pub struct Config {
     pub template_name: String,
     pub rokit_tools: Vec<String>,
-    pub wally: Wally,
+    pub wally: Option<Wally>,
 }
 
 impl Config {

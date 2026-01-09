@@ -117,9 +117,9 @@ pub fn project(output: &PathBuf, template: &PathBuf) -> std::io::Result<()> {
         initialize_empty_rojo()?;
     }
     let mut contains_wally = false;
-    if template_config.rokit_tools.contains(&"wally".to_string()) {
+    if template_config.rokit_tools.contains(&"wally".to_string()) && template_config.wally.is_some() {
         contains_wally = true;
-        initialize_wally(&template_config.wally)?;
+        initialize_wally(&template_config.wally.unwrap())?;
     }
     copy_dir_all(template, ".", match output.file_name() {
         Some(x) => x.to_str().unwrap(),
