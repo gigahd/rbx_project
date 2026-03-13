@@ -38,8 +38,8 @@ pub enum Command {
 
 #[derive(Parser, Debug)]
 pub struct ProjectArgs {
-    /// Set the preset type the defaults are (ServiceProject, Plugin, Package, Empty)
-    #[arg(short, long, default_value_t = String::from("ServiceProject"))]
+    /// Set the preset type the defaults are (Game, Plugin, Package, Empty)
+    #[arg(short, long, default_value_t = String::from("Game"))]
     pub kind: String,
 
     /// Whether or not the project should be opened in Visual Studio Code
