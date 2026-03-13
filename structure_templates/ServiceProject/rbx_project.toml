@@ -1,5 +1,5 @@
 template_name = "default"
-rokit_tools = ["rojo", "wally", "wally-package-types"]
+rokit_tools = ["rojo", "wally", "wally-package-types", "1Axen/blink"]
 
 [[wally.shared]]
 name = "t"
@@ -15,7 +15,7 @@ origin = "elttob/fusion@0.3.0"
 
 [[wally.shared]]
 name = "onboot"
-origin = "gigahd/onboot@0.3.0"
+origin = "gigahd/onboot@0.5.0"
 
 [[wally.server]]
 name = "ProfileStore"
