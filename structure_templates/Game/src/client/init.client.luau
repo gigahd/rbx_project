@@ -14,4 +14,4 @@ onboot.SpawnAll(services, "init", function()
 end)
 
 --Initiate UI
-onboot.SpawnAll(onboot.LoadModule(ReplicatedStorage.Shared.UI))
+onboot.SpawnAll(onboot.LoadModule(ReplicatedStorage.UI))
