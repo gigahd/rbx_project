@@ -1,2 +1,2 @@
 template_name = "package"
-rokit_tools = ["rojo"]
+rokit_tools = ["rojo", "wally"]

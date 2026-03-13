@@ -1,16 +1,59 @@
-use std::{env::set_current_dir, ffi::OsStr, fs::{self, OpenOptions}, io::{self, Error, Write}, path::{Path, PathBuf}, process::{Command, Output}, str::FromStr};
+use std::{
+    env::set_current_dir,
+    ffi::{OsStr, OsString},
+    fs::{self, OpenOptions},
+    io::{self, Error, ErrorKind, Write},
+    path::{Path, PathBuf},
+    process::{Command, Output},
+};
 
 use crate::config::{self, Wally};
+
+fn log_step(message: &str) {
+    println!("[rbx_project] {message}");
+}
 
 pub fn run_command<T>(command: &str, args: T) -> std::io::Result<Output>
 where
     T: IntoIterator,
     T::Item: AsRef<OsStr>,
 {
-    Command::new("cmd")
-        .args(["/C", command])
-        .args(args)
-        .output()
+    let args_vec: Vec<OsString> = args
+        .into_iter()
+        .map(|arg| arg.as_ref().to_os_string())
+        .collect();
+    let display_args = args_vec
+        .iter()
+        .map(|arg| arg.to_string_lossy().to_string())
+        .collect::<Vec<_>>()
+        .join(" ");
+    let display = if display_args.is_empty() {
+        command.to_string()
+    } else {
+        format!("{command} {display_args}")
+    };
+
+    log_step(format!("Running `{display}`").as_str());
+
+    let output = Command::new(command).args(&args_vec).output()?;
+
+    if output.status.success() {
+        return Ok(output);
+    }
+
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let details = if !stderr.is_empty() { stderr } else { stdout };
+    let details = if details.is_empty() {
+        "No output provided by command".to_string()
+    } else {
+        details
+    };
+
+    Err(Error::new(
+        ErrorKind::Other,
+        format!("Command failed: `{display}`\n{details}"),
+    ))
 }
 
 fn is_text_file(path: &Path) -> bool {
@@ -78,6 +121,7 @@ fn folder(folder_name: &PathBuf) -> std::io::Result<()> {
 }
 
 fn initialize_empty_rojo() -> std::io::Result<()> {
+    log_step("Initializing empty Rojo project");
     run_command("rojo", ["init", "--kind", "model"])?;
     //Removes the only created file to just have an empty source
     let path_buf = PathBuf::new().join("src").join("init.luau");
@@ -85,51 +129,87 @@ fn initialize_empty_rojo() -> std::io::Result<()> {
     Ok(())
 }
 
-fn initialize_wally(wally_dependencies: &Wally) -> std::io::Result<()> {
+fn initialize_wally(wally_dependencies: Option<&Wally>) -> std::io::Result<()> {
+    log_step("Initializing Wally");
     run_command("wally", ["init"])?;
-    wally_dependencies.write_to_wally(PathBuf::from_str("./wally.toml").expect("Failed to find wally.toml"))?;
+
+    if let Some(wally_dependencies) = wally_dependencies {
+        wally_dependencies.write_to_wally(PathBuf::from("wally.toml"))?;
+    } else {
+        log_step("No Wally dependencies in template; keeping generated wally.toml");
+    }
+
     Ok(())
 }
 
 pub fn run_wally_type_handling() -> std::io::Result<()> {
+    log_step("Generating Wally package types");
     run_command("wally", ["install"])?;
-    run_command("rojo", ["sourcemap", "default.project.json", "--output", "sourcemap.json"])?;
-    run_command("wally-package-types", ["--sourcemap", "sourcemap.json", "Packages/"])?;
+
+    // Rojo sourcemap fails if a referenced $path directory does not exist yet.
+    if !Path::new("Packages").try_exists()? {
+        log_step("Creating empty Packages directory");
+        fs::create_dir_all("Packages")?;
+    }
+
+    run_command(
+        "rojo",
+        ["sourcemap", "default.project.json", "--output", "sourcemap.json"],
+    )?;
+    run_command(
+        "wally-package-types",
+        ["--sourcemap", "sourcemap.json", "Packages/"],
+    )?;
     Ok(())
 }
 
 pub fn project(output: &PathBuf, template: &PathBuf) -> std::io::Result<()> {
-    
+    log_step("Loading template configuration");
     let template_config = config::Config::from_toml(&template.join(config::CONFIG_NAME))?;
 
     //Initialize Root
+    log_step(format!("Creating project folder at {}", output.display()).as_str());
     make_origin_and_move_into(output)?;
 
     //Initialize Rokit as the package manager
+    log_step("Initializing Rokit");
     run_command("rokit", ["init"])?;
 
-    template_config.rokit_tools.iter().for_each(|tool| {
-        run_command("rokit", ["add", tool]).expect(format!("Failed to add {} as a tool to rokit", tool).as_str());
-    });
-    let mut contains_rojo = false;
-    if template_config.rokit_tools.contains(&"rojo".to_string()) {
-        contains_rojo = true;
+    for tool in &template_config.rokit_tools {
+        run_command("rokit", ["add", tool])?;
+    }
+
+    let contains_rojo = template_config.rokit_tools.iter().any(|tool| tool == "rojo");
+    if contains_rojo {
         initialize_empty_rojo()?;
     }
-    let mut contains_wally = false;
-    if template_config.rokit_tools.contains(&"wally".to_string()) && template_config.wally.is_some() {
-        contains_wally = true;
-        initialize_wally(&template_config.wally.unwrap())?;
-    }
-    copy_dir_all(template, ".", match output.file_name() {
-        Some(x) => x.to_str().unwrap(),
-        None => return Err(Error::new(io::ErrorKind::NotFound, "Can't find file name of path"))
-    })?;
 
-    if contains_rojo && contains_wally {
+    let contains_wally = template_config.rokit_tools.iter().any(|tool| tool == "wally");
+    let has_wally_dependencies = template_config
+        .wally
+        .as_ref()
+        .map(|w| !w.shared.is_empty() || !w.server.is_empty())
+        .unwrap_or(false);
+    if contains_wally {
+        initialize_wally(template_config.wally.as_ref())?;
+    }
+
+    let project_name = output
+        .file_name()
+        .map(|name| name.to_string_lossy().to_string())
+        .ok_or_else(|| Error::new(io::ErrorKind::NotFound, "Can't find file name of path"))?;
+
+    log_step("Copying template files");
+    copy_dir_all(template, ".", &project_name)?;
+
+    if contains_rojo && contains_wally && has_wally_dependencies {
         run_wally_type_handling()?;
+    } else if contains_rojo && contains_wally {
+        log_step("No Wally dependencies configured; skipping package type generation");
     }
 
-
+    log_step("Project scaffold complete");
     Ok(())
 }
+
+

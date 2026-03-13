@@ -1,4 +1,8 @@
-use std::{fs, path::PathBuf, str::FromStr};
+use std::{
+    fs,
+    io::{self, Error, ErrorKind},
+    path::PathBuf,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -14,15 +18,19 @@ pub struct WallyDependency {
 
 impl WallyDependency {
     pub fn from_wally_string(wally_string: &str) -> Option<Self> {
-        let (name, origin) = match wally_string.split_once("=") {
+        let (name, origin) = match wally_string.split_once('=') {
             Some(x) => x,
             None => return None,
         };
         let trimmed_name = name.trim().to_string();
-        let trimmed_origin = origin.trim().replace("\"", "");
-        Some(WallyDependency { name: trimmed_name, origin: trimmed_origin })
+        let trimmed_origin = origin.trim().replace('"', "");
+        Some(WallyDependency {
+            name: trimmed_name,
+            origin: trimmed_origin,
+        })
     }
-    pub fn to_wally_string(self: &Self) -> String {
+
+    pub fn to_wally_string(&self) -> String {
         format!("{} = \"{}\"", self.name, self.origin)
     }
 }
@@ -35,68 +43,91 @@ pub struct Wally {
 
 impl Wally {
     pub fn _from_wally(wally_file: &PathBuf) -> Self {
-        let content = fs::read_to_string(wally_file)
-            .expect(&format!("Couldn't open file {:?}", wally_file));
+        let content = match fs::read_to_string(wally_file) {
+            Ok(content) => content,
+            Err(_) => {
+                return Wally {
+                    shared: vec![],
+                    server: vec![],
+                }
+            }
+        };
 
         const DEPS: &str = "[dependencies]";
         const SERVER_DEPS: &str = "[server-dependencies]";
 
-        let (shared_dependencies, server_dependencies) = match (content.find(DEPS), content.find(SERVER_DEPS)) {
-            // both tags present and [dependencies] appears before [server-dependencies]
-            (Some(deps_pos), Some(server_pos)) if deps_pos < server_pos => {
-                let after_deps = &content[deps_pos + DEPS.len()..];
-                // safe split because we know SERVER_DEPS occurs after DEPS in this branch
-                let (shared, server) = after_deps.split_once(SERVER_DEPS).unwrap();
-                (shared.trim(), server.trim())
-            }
+        let (shared_dependencies, server_dependencies) =
+            match (content.find(DEPS), content.find(SERVER_DEPS)) {
+                // both tags present and [dependencies] appears before [server-dependencies]
+                (Some(deps_pos), Some(server_pos)) if deps_pos < server_pos => {
+                    let after_deps = &content[deps_pos + DEPS.len()..];
+                    match after_deps.split_once(SERVER_DEPS) {
+                        Some((shared, server)) => (shared.trim(), server.trim()),
+                        None => (after_deps.trim(), ""),
+                    }
+                }
 
-            // only [dependencies] present (or it appears after server tag)
-            (Some(deps_pos), _) => {
-                let after_deps = &content[deps_pos + DEPS.len()..];
-                (after_deps.trim(), "")
-            }
+                // only [dependencies] present (or it appears after server tag)
+                (Some(deps_pos), _) => {
+                    let after_deps = &content[deps_pos + DEPS.len()..];
+                    (after_deps.trim(), "")
+                }
 
-            // only [server-dependencies] present
-            (_, Some(server_pos)) => {
-                let after_server = &content[server_pos + SERVER_DEPS.len()..];
-                ("", after_server.trim())
-            }
+                // only [server-dependencies] present
+                (_, Some(server_pos)) => {
+                    let after_server = &content[server_pos + SERVER_DEPS.len()..];
+                    ("", after_server.trim())
+                }
 
-            // neither present
-            _ => ("", ""),
-        };
-        
+                // neither present
+                _ => ("", ""),
+            };
+
         let mut shared_dependency_list: Vec<WallyDependency> = Vec::new();
-        shared_dependencies.trim().lines().for_each(|wally_string| {
+        for wally_string in shared_dependencies.trim().lines() {
             let trimmed_wally = wally_string.trim();
-            shared_dependency_list.push(WallyDependency::from_wally_string(trimmed_wally).unwrap()); 
-        });
+            if let Some(dependency) = WallyDependency::from_wally_string(trimmed_wally) {
+                shared_dependency_list.push(dependency);
+            }
+        }
+
         let mut server_dependency_list: Vec<WallyDependency> = Vec::new();
-
-        server_dependencies.trim().lines().for_each(|wally_string| {
+        for wally_string in server_dependencies.trim().lines() {
             let trimmed_wally = wally_string.trim();
-            server_dependency_list.push(WallyDependency::from_wally_string(trimmed_wally).unwrap()); 
-        });
+            if let Some(dependency) = WallyDependency::from_wally_string(trimmed_wally) {
+                server_dependency_list.push(dependency);
+            }
+        }
 
-        Wally { shared: shared_dependency_list, server: server_dependency_list }
+        Wally {
+            shared: shared_dependency_list,
+            server: server_dependency_list,
+        }
     }
-    fn convert_dependency_list(list: &Vec<WallyDependency>) -> String {
-        let mut string = String::new();
-        list.iter().for_each(|dependency| {
-            string = format!("{}\n{}", string, dependency.to_wally_string())
-        });
-        string
+
+    fn convert_dependency_list(list: &[WallyDependency]) -> String {
+        list.iter()
+            .map(WallyDependency::to_wally_string)
+            .collect::<Vec<_>>()
+            .join("\n")
     }
-    pub fn write_to_wally(self: &Self, wally_file: PathBuf) -> std::io::Result<()> {
-        let string = fs::read_to_string(wally_file).expect("Couldn't open file");
-        let (info, _) = string.split_once("[dependencies]").unwrap();
 
-        let shared_string = self::Wally::convert_dependency_list(&self.shared);
-        let server_string = self::Wally::convert_dependency_list(&self.server);
-        
-        let wally_string = format!("{}\n\n[dependencies]{}\n\n[server-dependencies]{}", info.trim(), shared_string, server_string);
+    pub fn write_to_wally(&self, wally_file: PathBuf) -> io::Result<()> {
+        let string = fs::read_to_string(&wally_file)?;
+        let info = match string.split_once("[dependencies]") {
+            Some((header, _)) => header.trim().to_string(),
+            None => string.trim().to_string(),
+        };
 
-        create::file(&PathBuf::from_str("wally.toml").expect("Failed to convert wally.toml to path buffer"), &wally_string)?;
+        let shared_string = Wally::convert_dependency_list(&self.shared);
+        let server_string = Wally::convert_dependency_list(&self.server);
+
+        let wally_string = format!(
+            "{}\n\n[dependencies]\n{}\n\n[server-dependencies]\n{}",
+            info, shared_string, server_string
+        );
+
+        create::file(&wally_file, &wally_string)?;
         Ok(())
     }
 }
@@ -109,14 +140,23 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn from_toml(path: &PathBuf) -> std::io::Result<Self> {
+    pub fn from_toml(path: &PathBuf) -> io::Result<Self> {
         let s = fs::read_to_string(path)?;
-        let config: Config = toml::from_str(&s).expect("Failed to read config toml file");
-        Ok(config)
-        
+        toml::from_str(&s).map_err(|err| {
+            Error::new(
+                ErrorKind::InvalidData,
+                format!("Failed to parse {}: {err}", path.display()),
+            )
+        })
     }
-    pub fn serialize(self: &Self, dir: &PathBuf) -> std::io::Result<()> {
-        let toml = toml::to_string(&self).expect("Failed to convert config to toml");
+
+    pub fn serialize(&self, dir: &PathBuf) -> io::Result<()> {
+        let toml = toml::to_string(self).map_err(|err| {
+            Error::new(
+                ErrorKind::InvalidData,
+                format!("Failed to serialize config: {err}"),
+            )
+        })?;
         create::file(&dir.join(CONFIG_NAME), toml.as_str())?;
         Ok(())
     }
