@@ -12,6 +12,12 @@
       },
       "Assets": {
         "$path": "Assets/Shared"
+      },
+      "Network": {
+        "$path": "Network/Client"
+      },
+      "UI": {
+        "$path": "src/ui"
       }
     },
 
@@ -21,6 +27,9 @@
       },
       "ServerPackages": {
         "$path": "ServerPackages"
+      },
+      "Network": {
+        "$path": "Network/Server"
       }
     },
     "ServerStorage": {

@@ -1,0 +1,2 @@
+option ClientOutput = "../Client/ClientNet"
+option ServerOutput = "../Server/ServerNet"
