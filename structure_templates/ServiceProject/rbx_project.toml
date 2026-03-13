@@ -15,7 +15,7 @@ origin = "elttob/fusion@0.3.0"
 
 [[wally.shared]]
 name = "onboot"
-origin = "gigahd/onboot@0.5.0"
+origin = "gigahd/onboot@0.5.1"
 
 [[wally.server]]
 name = "ProfileStore"
