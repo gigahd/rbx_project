@@ -5,3 +5,6 @@ wally.lock
 sourcemap.json
 Packages/
 ServerPackages/
+
+Network/Client/
+Network/Server/
