@@ -1,5 +1,5 @@
 template_name = "default"
-rokit_tools = ["rojo", "wally", "wally-package-types", "1Axen/blink", "stylua", "lune", "luau-lsp"]
+rokit_tools = ["rojo", "wally", "wally-package-types", "1Axen/blink", "stylua", "lune", "luau-lsp", "moonwave"]
 
 [[wally.shared]]
 name = "t"

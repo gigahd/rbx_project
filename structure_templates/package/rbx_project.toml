@@ -1,2 +1,2 @@
 template_name = "package"
-rokit_tools = ["rojo", "wally", "wally-package-types"]
+rokit_tools = ["rojo", "wally", "wally-package-types", "1Axen/blink", "stylua", "lune", "luau-lsp", "moonwave"]
