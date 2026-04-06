@@ -1,22 +1,35 @@
 template_name = "default"
-rokit_tools = ["rojo", "wally", "wally-package-types", "1Axen/blink"]
+rokit_tools = ["rojo", "wally", "wally-package-types", "1Axen/blink", "stylua", "lune", "luau-lsp"]
 
 [[wally.shared]]
 name = "t"
-origin = "osyrisrblx/t@3.1.1"
+origin = "osyrisrblx/t@^3.1.1"
 
 [[wally.shared]]
 name = "Signal"
-origin = "sleitnick/signal@2.0.3"
+origin = "sleitnick/signal@^2.0.3"
 
 [[wally.shared]]
 name = "Fusion"
-origin = "elttob/fusion@0.3.0"
+origin = "elttob/fusion@^0.3.0"
 
 [[wally.shared]]
 name = "onboot"
-origin = "gigahd/onboot@0.5.1"
+origin = "gigahd/onboot@^0.5.2"
+
+[[wally.shared]]
+name = "UILabs"
+origin = "pepeeltoro41/ui-labs@^2.4.2"
+
+[[wally.shared]]
+name = "Future"
+origin = "red-blox/future@^1.0.1"
+
+[[wally.shared]]
+name = "Trove"
+origin = "sleitnick/trove@^1.8.0"
+
 
 [[wally.server]]
 name = "ProfileStore"
-origin = "lm-loleris/profilestore@1.0.3"
+origin = "lm-loleris/profilestore@^1.0.3"

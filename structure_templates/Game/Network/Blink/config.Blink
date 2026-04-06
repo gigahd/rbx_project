@@ -1,0 +1,4 @@
+option ClientOutput = "../Client/NetClient"
+option ServerOutput = "../Server/NetServer"
+
+option FutureLibrary = "ReplicatedStorage.Packages.Future"

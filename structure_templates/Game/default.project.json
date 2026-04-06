@@ -17,7 +17,7 @@
         "$path": "Network/Client"
       },
       "UI": {
-        "$path": "src/ui"
+        "$path": "src/UI"
       }
     },
 
