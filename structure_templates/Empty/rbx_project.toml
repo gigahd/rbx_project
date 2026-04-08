@@ -1,2 +1,11 @@
-template_name = "default"
-rokit_tools = ["rojo", "wally", "wally-package-types", "1Axen/blink"]
+template_name = "empty"
+
+[rokit]
+rojo = "rojo-rbx/rojo@7.7.0-rc.1"
+wally = ""
+wally-package-types = ""
+blink = "1Axen/blink"
+StyLua = ""
+lune = ""
+luau-lsp = ""
+moonwave = ""

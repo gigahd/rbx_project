@@ -1,1 +1,13 @@
-std = "roblox"
+std = "luau+roblox"
+
+[config]
+# Warn on manual table.clone patterns
+manual_table_clone = "warn"
+# Warn on UDim2.new(0,x,0,y) instead of fromOffset
+roblox_manual_fromscale_or_fromoffset = "warn"
+# Allow shadowing because it's common in Luau
+shadowing = "warn"
+# Warn on unused variables
+unused_variable = "warn"
+# Style: warn on mixed table (array + hash in same literal)
+mixed_table = "warn"

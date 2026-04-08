@@ -1,5 +1,6 @@
 {
   "name": "{{project_name}}",
+  "globIgnorePaths": ["**/*.spec.luau"],
   "tree": {
     "$className": "DataModel",
 
@@ -8,16 +9,17 @@
         "$path": "src/shared"
       },
       "Packages": {
-        "$path": "Packages"
+        "$path": {"optional": "Packages"}
       },
+      "DevPackages": {
+        "$path": {"optional": "DevPackages"}
+      }
+      ,
       "Assets": {
         "$path": "Assets/Shared"
       },
       "Network": {
-        "$path": "Network/Client"
-      },
-      "UI": {
-        "$path": "src/UI"
+        "$path": { "optional": "Network/Client"}
       }
     },
 
@@ -26,20 +28,16 @@
         "$path": "src/server"
       },
       "ServerPackages": {
-        "$path": "ServerPackages"
+        "$path": {"optional": "ServerPackages"}
       },
       "Network": {
-        "$path": "Network/Server"
+        "$path": { "optional": "Network/Server" }
       }
     },
     "ServerStorage": {
       "Assets": {
         "$path": "Assets/Server"
       }
-    },
-
-    "StarterGui": {
-      "$path": "Assets/UI"
     },
 
     "StarterPlayer": {

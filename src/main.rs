@@ -1,13 +1,17 @@
 mod cli;
-mod create;
 mod config;
+mod create;
+mod reconcile;
 
 use clap::Parser;
 
 use crate::cli::handle_cli;
 
+pub fn log_step(message: &str) {
+    println!("[rbx_project] {message}");
+}
 
-fn main() -> std::io::Result<()> {
+fn main() -> anyhow::Result<()> {
     handle_cli(cli::Cli::parse())?;
     Ok(())
 }

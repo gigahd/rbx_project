@@ -1,14 +1,14 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local onboot = require(ReplicatedStorage.Packages.onboot)
+local OnBoot = require(ReplicatedStorage.Packages.OnBoot)
 
-onboot.SetDebugInfo(true)
+OnBoot.SetDebugInfo(true)
 
-local services = onboot.LoadChildren({ script.Services, ReplicatedStorage.Shared.SharedServices })
+local services = OnBoot.LoadChildren(script.Services)
 
 --Initiate Services
-onboot.SpawnAll(services, "init", function()
-    onboot.SpawnAll(services, "start", function()
+OnBoot.SpawnAll(services, "init", function()
+    OnBoot.SpawnAll(services, "start", function()
         print("Server Services Loaded")
     end)
 end)

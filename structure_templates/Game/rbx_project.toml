@@ -1,35 +1,79 @@
-template_name = "default"
-rokit_tools = ["rojo", "wally", "wally-package-types", "1Axen/blink", "stylua", "lune", "luau-lsp", "moonwave"]
+template_name = "game"
 
-[[wally.shared]]
-name = "t"
-origin = "osyrisrblx/t@^3.1.1"
+[rokit]
+rojo = "rojo-rbx/rojo@7.7.0-rc.1"
+wally = ""
+wally-package-types = ""
+blink = "1Axen/blink"
+StyLua = ""
+lune = ""
+luau-lsp = ""
+moonwave = ""
 
-[[wally.shared]]
-name = "Signal"
-origin = "sleitnick/signal@^2.0.3"
+[wally.shared]
+# Reactive UI framework — pick one:
+Vide = "centau/vide@^0.4.0"
+# Fusion = "elttob/fusion@0.3.0"
+# React = "jsdotlua/react@^17.3.0"
+# ReactRoblox = "jsdotlua/react-roblox@^17.3.0"
 
-[[wally.shared]]
-name = "Fusion"
-origin = "elttob/fusion@^0.3.0"
+# Old-school UI library (still widely used)
+# Roact = "roblox/roact@^1.4.4"
 
-[[wally.shared]]
-name = "onboot"
-origin = "gigahd/onboot@^0.5.2"
+# Component libraries
+# Vide:
 
-[[wally.shared]]
-name = "UILabs"
-origin = "pepeeltoro41/ui-labs@^2.4.2"
+# Fusion:
+# OnyxUI = "imavafe/onyx-ui@^1.0.4"
 
-[[wally.shared]]
-name = "Future"
-origin = "red-blox/future@^1.0.1"
+# React:
+# StudioComponents = "sircfenner/studiocomponents@1.2.0"
 
-[[wally.shared]]
-name = "Trove"
-origin = "sleitnick/trove@^1.8.0"
+# Reactive state (works on client AND server)
+Charm = "littensy/charm@^0.10.0"
+CharmSync = "littensy/charm-sync@0.3.0"
 
+VideCharm = "littensy/vide-charm@^0.3.0"
+# ReactCharm = "littensy/react-charm@^0.3.0"
 
-[[wally.server]]
-name = "ProfileStore"
-origin = "lm-loleris/profilestore@^1.0.3"
+# Animation library
+Ripple = "littensy/ripple@^0.10.0"
+VideRipple = "littensy/vide-ripple@^0.10.2"
+# ReactRipple = "littensy/react-ripple@^3.0.1"
+
+# Runtime Typechecker
+T = "osyrisrblx/t@^3.1.1"
+
+# Module loader
+OnBoot = "gigahd/onboot@^0.5.2"
+
+# Utility libraries
+Signal = "kineticwallet/lemon-signal@1.10.0"
+Trove = "sleitnick/trove@^1.8.0"
+
+# Async utilities
+Future = "red-blox/future@^1.0.1"
+Promise = "evaera/promise@^4.0.0"
+
+# ECS framework
+# Jecs = "ukendio/jecs@0.11.0"
+
+# Debug UI
+Iris = "sirmallard/iris@2.5.1"
+
+# UI Storybook helper
+UILabs = "pepeeltoro41/ui-labs@^2.4.2"
+
+# ECS Debugging
+# Jabby = "alicesaidhi/jabby@0.5.1"
+
+# Testing framework
+# Jest = "jsdotlua/jest@^3.10.0"
+# JestGlobals = "jsdotlua/jest-globals@^3.10.0"
+
+# Older testing framework (still widely used)
+# TestEZ = "felixdev/testez@^0.4.1"
+
+[wally.server]
+# Player data Store
+ProfileStore = "lm-loleris/profilestore@^1.0.3"

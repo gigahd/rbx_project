@@ -1,10 +1,28 @@
-/*.rbxlx
-/*.rbxlx.lock
-/*.rbxl.lock
-wally.lock
-sourcemap.json
-Packages/
-ServerPackages/
+# Built artifacts
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock
+build/
 
-Network/Client/
-Network/Server/
+# Auto-generated for luau-lsp
+sourcemap.json
+
+# Wally — reinstalled via `wally install`
+/Packages
+/ServerPackages
+/DevPackages
+
+# Blink output — regenerated via `blink Network/Blink/config.Blink`
+/Network/Client
+/Network/Server
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# Env
+.env
+.env.local

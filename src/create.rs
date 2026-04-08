@@ -1,19 +1,19 @@
 use std::{
-    env::set_current_dir,
     ffi::{OsStr, OsString},
     fs::{self, OpenOptions},
-    io::{self, Error, ErrorKind, Write},
-    path::{Path, PathBuf},
+    io::Write,
+    path::Path,
     process::{Command, Output},
 };
 
-use crate::config::{self, Wally};
+use anyhow::{bail, Context, Result};
 
-fn log_step(message: &str) {
-    println!("[rbx_project] {message}");
-}
+use crate::{
+    config::{self, Pesde, Wally},
+    log_step,
+};
 
-pub fn run_command<T>(command: &str, args: T) -> std::io::Result<Output>
+pub fn run_command<T>(command: &str, args: T, working_dir: &Path) -> Result<Output>
 where
     T: IntoIterator,
     T::Item: AsRef<OsStr>,
@@ -35,7 +35,11 @@ where
 
     log_step(format!("Running `{display}`").as_str());
 
-    let output = Command::new(command).args(&args_vec).output()?;
+    let output = Command::new(command)
+        .args(&args_vec)
+        .current_dir(working_dir)
+        .output()
+        .with_context(|| format!("Failed to execute `{display}`"))?;
 
     if output.status.success() {
         return Ok(output);
@@ -50,26 +54,16 @@ where
         details
     };
 
-    Err(Error::new(
-        ErrorKind::Other,
-        format!("Command failed: `{display}`\n{details}"),
-    ))
+    bail!("Command failed: `{display}`\n{details}");
 }
 
-fn is_text_file(path: &Path) -> bool {
-    matches!(
-        path.extension().and_then(|e| e.to_str()),
-        Some("toml" | "md" | "txt" | "yaml" | "yml" | "json" | "sh")
-    )
-}
-
-/// Recursively copies a directory.
-/// Assumes no symlinks and overwrites existing files
+/// Recursively copies a directory, replacing `{{project_name}}` in text files.
+/// Files are detected as text by attempting UTF-8 decode; failures are copied as binary.
 fn copy_dir_all(
     src: impl AsRef<Path>,
     dst: impl AsRef<Path>,
     project_name: &str,
-) -> io::Result<()> {
+) -> Result<()> {
     let src = src.as_ref();
     let dst = dst.as_ref();
 
@@ -84,8 +78,7 @@ fn copy_dir_all(
         if ty.is_dir() {
             copy_dir_all(&src_path, &dst_path, project_name)?;
         } else if ty.is_file() {
-            if is_text_file(&src_path) {
-                let contents = fs::read_to_string(&src_path)?;
+            if let Ok(contents) = fs::read_to_string(&src_path) {
                 let rendered = contents.replace("{{project_name}}", project_name);
                 fs::write(&dst_path, rendered)?;
             } else {
@@ -97,7 +90,7 @@ fn copy_dir_all(
     Ok(())
 }
 
-pub fn file(file_name: &PathBuf, file_content: &str) -> std::io::Result<()> {
+pub fn write_file(file_name: &Path, file_content: &str) -> Result<()> {
     let mut file = OpenOptions::new()
         .read(true)
         .write(true)
@@ -110,31 +103,21 @@ pub fn file(file_name: &PathBuf, file_content: &str) -> std::io::Result<()> {
     Ok(())
 }
 
-fn make_origin_and_move_into(main_folder_name: &PathBuf) -> std::io::Result<()> {
-    folder(main_folder_name)?;
-    set_current_dir(main_folder_name)?;
-    Ok(())
-}
-
-fn folder(folder_name: &PathBuf) -> std::io::Result<()> {
-    fs::create_dir(folder_name)
-}
-
-fn initialize_empty_rojo() -> std::io::Result<()> {
+fn initialize_empty_rojo(working_dir: &Path) -> Result<()> {
     log_step("Initializing empty Rojo project");
-    run_command("rojo", ["init", "--kind", "model"])?;
-    //Removes the only created file to just have an empty source
-    let path_buf = PathBuf::new().join("src").join("init.luau");
+    run_command("rojo", ["init", "--kind", "model"], working_dir)?;
+    // Removes the only created file to just have an empty source
+    let path_buf = working_dir.join("src").join("init.luau");
     fs::remove_file(&path_buf)?;
     Ok(())
 }
 
-fn initialize_wally(wally_dependencies: Option<&Wally>) -> std::io::Result<()> {
+fn initialize_wally(wally_dependencies: Option<&Wally>, working_dir: &Path) -> Result<()> {
     log_step("Initializing Wally");
-    run_command("wally", ["init"])?;
+    run_command("wally", ["init"], working_dir)?;
 
     if let Some(wally_dependencies) = wally_dependencies {
-        wally_dependencies.write_to_wally(PathBuf::from("wally.toml"))?;
+        wally_dependencies.write_to_wally(&working_dir.join("wally.toml"))?;
     } else {
         log_step("No Wally dependencies in template; keeping generated wally.toml");
     }
@@ -142,74 +125,116 @@ fn initialize_wally(wally_dependencies: Option<&Wally>) -> std::io::Result<()> {
     Ok(())
 }
 
-pub fn run_wally_type_handling() -> std::io::Result<()> {
+fn initialize_pesde(pesde_dependencies: Option<&Pesde>, working_dir: &Path) -> Result<()> {
+    log_step("Initializing pesde");
+    run_command("pesde", ["init"], working_dir)?;
+
+    if let Some(pesde_deps) = pesde_dependencies {
+        pesde_deps.write_to_pesde(&working_dir.join("pesde.toml"))?;
+    } else {
+        log_step("No pesde dependencies in template; keeping generated pesde.toml");
+    }
+
+    Ok(())
+}
+
+pub fn run_pesde_install(working_dir: &Path) -> Result<()> {
+    log_step("Installing pesde packages");
+    run_command("pesde", ["install"], working_dir)?;
+    Ok(())
+}
+
+pub fn run_wally_type_handling(working_dir: &Path) -> Result<()> {
     log_step("Generating Wally package types");
-    run_command("wally", ["install"])?;
+    run_command("wally", ["install"], working_dir)?;
 
     // Rojo sourcemap fails if a referenced $path directory does not exist yet.
-    if !Path::new("Packages").try_exists()? {
+    let packages_dir = working_dir.join("Packages");
+    if !packages_dir.try_exists()? {
         log_step("Creating empty Packages directory");
-        fs::create_dir_all("Packages")?;
+        fs::create_dir_all(&packages_dir)?;
     }
 
     run_command(
         "rojo",
         ["sourcemap", "default.project.json", "--output", "sourcemap.json"],
+        working_dir,
     )?;
     run_command(
         "wally-package-types",
         ["--sourcemap", "sourcemap.json", "Packages/"],
+        working_dir,
     )?;
     Ok(())
 }
 
-pub fn project(output: &PathBuf, template: &PathBuf) -> std::io::Result<()> {
+pub fn project(output: &Path, template: &Path) -> Result<()> {
     log_step("Loading template configuration");
     let template_config = config::Config::from_toml(&template.join(config::CONFIG_NAME))?;
 
-    //Initialize Root
     log_step(format!("Creating project folder at {}", output.display()).as_str());
-    make_origin_and_move_into(output)?;
+    fs::create_dir(output).with_context(|| format!("Failed to create directory {}", output.display()))?;
 
-    //Initialize Rokit as the package manager
+    let result = setup_project(output, template, &template_config);
+    if result.is_err() {
+        log_step("Project creation failed, cleaning up");
+        let _ = fs::remove_dir_all(output);
+    }
+    result
+}
+
+fn setup_project(output: &Path, template: &Path, template_config: &config::Config) -> Result<()> {
+    // Initialize Rokit as the package manager
     log_step("Initializing Rokit");
-    run_command("rokit", ["init"])?;
+    run_command("rokit", ["init"], output)?;
 
-    for tool in &template_config.rokit_tools {
-        run_command("rokit", ["add", tool])?;
+    for spec in template_config.rokit.specs() {
+        run_command("rokit", ["add", spec], output)?;
     }
 
-    let contains_rojo = template_config.rokit_tools.iter().any(|tool| tool == "rojo");
+    let contains_rojo = template_config.rokit.has_tool("rojo");
     if contains_rojo {
-        initialize_empty_rojo()?;
+        initialize_empty_rojo(output)?;
     }
 
-    let contains_wally = template_config.rokit_tools.iter().any(|tool| tool == "wally");
+    let contains_wally = template_config.rokit.has_tool("wally");
     let has_wally_dependencies = template_config
         .wally
         .as_ref()
-        .map(|w| !w.shared.is_empty() || !w.server.is_empty())
+        .map(|w| w.has_dependencies())
         .unwrap_or(false);
     if contains_wally {
-        initialize_wally(template_config.wally.as_ref())?;
+        initialize_wally(template_config.wally.as_ref(), output)?;
+    }
+
+    let contains_pesde = template_config.rokit.has_tool("pesde");
+    let has_pesde_dependencies = template_config
+        .pesde
+        .as_ref()
+        .map(|p| p.has_dependencies())
+        .unwrap_or(false);
+    if contains_pesde {
+        initialize_pesde(template_config.pesde.as_ref(), output)?;
     }
 
     let project_name = output
         .file_name()
         .map(|name| name.to_string_lossy().to_string())
-        .ok_or_else(|| Error::new(io::ErrorKind::NotFound, "Can't find file name of path"))?;
+        .context("Cannot determine project name from output path")?;
 
     log_step("Copying template files");
-    copy_dir_all(template, ".", &project_name)?;
+    copy_dir_all(template, output, &project_name)?;
 
     if contains_rojo && contains_wally && has_wally_dependencies {
-        run_wally_type_handling()?;
+        run_wally_type_handling(output)?;
     } else if contains_rojo && contains_wally {
         log_step("No Wally dependencies configured; skipping package type generation");
+    }
+
+    if contains_pesde && has_pesde_dependencies {
+        run_pesde_install(output)?;
     }
 
     log_step("Project scaffold complete");
     Ok(())
 }
-
-
