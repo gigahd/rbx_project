@@ -1,6 +1,6 @@
 {
   "name": "{{project_name}}",
-  "globIgnorePaths": ["**/*.spec.luau"],
+  "globIgnorePaths": ["**/*.spec.luau", "**/*.story.luau", "**/*.storybook.luau"],
   "tree": {
     "$className": "DataModel",
 
