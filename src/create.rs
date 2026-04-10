@@ -234,7 +234,10 @@ fn setup_project(output: &Path, template: &Path, template_config: &config::Confi
     if contains_pesde && has_pesde_dependencies {
         run_pesde_install(output)?;
     }
-
+    let contains_lune = template_config.rokit.has_tool("lune");
+    if contains_lune {
+        run_command("lune", {"setup"}, output)?;
+    }
     log_step("Project scaffold complete");
     Ok(())
 }

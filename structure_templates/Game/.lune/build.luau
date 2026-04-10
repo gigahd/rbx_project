@@ -14,6 +14,7 @@
 
 local process = require("@lune/process")
 local stdio = require("@lune/stdio")
+local run = require("./Util/exec")
 
 local OUTPUT = "build/game.rbxl"
 
@@ -24,14 +25,7 @@ for i, arg in args do
     end
 end
 
-local function run(program: string, programArgs: { string }, label: string)
-    stdio.write(`\n{stdio.color("cyan")}▶ {label}{stdio.color("reset")}\n`)
-    local result = process.spawn(program, programArgs, { stdio = "inherit" })
-    if not result.ok then
-        stdio.write(`{stdio.color("red")}✗ {label} failed (exit {result.code}){stdio.color("reset")}\n`)
-        process.exit(result.code)
-    end
-end
+
 
 run("blink", { "Network/Blink/config.Blink" }, "Generating network code")
 run("wally", { "install" }, "Installing Wally packages")
