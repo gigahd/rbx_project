@@ -30,10 +30,11 @@ Vide = "centau/vide@^0.4.0"
 # StudioComponents = "sircfenner/studiocomponents@1.2.0"
 
 # Reactive state (works on client AND server)
-Charm = "littensy/charm@^0.11.0-rc.5"
-CharmSync = "littensy/charm-sync@^0.4.0-rc.7"
+Charm = "littensy/charm@0.11.0-rc.5"
+CharmSync = "littensy/charm-sync@0.4.0-rc.7"
 
-VideCharm = "littensy/vide-charm@^0.4.0-rc.5"
+
+VideCharm = "littensy/vide-charm@0.4.0-rc.5"
 # ReactCharm = "littensy/react-charm@^0.3.0"
 
 # Animation library
@@ -43,6 +44,7 @@ VideRipple = "littensy/vide-ripple@^0.10.2"
 
 # Runtime Typechecker
 # T = "osyrisrblx/t@^3.1.1"
+GT = "corecii/greentea@0.4.11"
 
 # Module loader
 OnBoot = "gigahd/onboot@^0.5.2"
@@ -67,13 +69,16 @@ UILabs = "pepeeltoro41/ui-labs@^2.4.2"
 # ECS Debugging
 # Jabby = "alicesaidhi/jabby@0.5.1"
 
-# Testing framework
-# Jest = "jsdotlua/jest@^3.10.0"
-# JestGlobals = "jsdotlua/jest-globals@^3.10.0"
-
-# Older testing framework (still widely used)
-# TestEZ = "felixdev/testez@^0.4.1"
-
 [wally.server]
 # Player data Store
 ProfileStore = "lm-loleris/profilestore@^1.0.3"
+# Lyra's built specifically for handling trading as well. So if you need trading in your game consider using Lyra.
+# Lyra = "paradoxum-games/lyra@0.6.0"
+
+[wally.dev]
+# Testing framework
+Jest = "jsdotlua/jest@^3.10.0"
+JestGlobals = "jsdotlua/jest-globals@^3.10.0"
+
+# Older testing framework (still widely used)
+# TestEZ = "felixdev/testez@^0.4.1"
