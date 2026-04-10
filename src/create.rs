@@ -236,7 +236,7 @@ fn setup_project(output: &Path, template: &Path, template_config: &config::Confi
     }
     let contains_lune = template_config.rokit.has_tool("lune");
     if contains_lune {
-        run_command("lune", {"setup"}, output)?;
+        run_command("lune", ["setup"], output)?;
     }
     log_step("Project scaffold complete");
     Ok(())
