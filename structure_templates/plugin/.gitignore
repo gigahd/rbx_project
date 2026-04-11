@@ -1,7 +1,25 @@
-/*.rbxlx
-/*.rbxlx.lock
-/*.rbxl.lock
-wally.lock
+# Built artifacts
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock
+build/
+
+# Auto-generated for luau-lsp
 sourcemap.json
-Packages/
-ServerPackages/
+
+# Wally — reinstalled via `wally install`
+/Packages
+/ServerPackages
+/DevPackages
+wally.lock
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# Env
+.env
+.env.local

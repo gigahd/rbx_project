@@ -1,4 +1,4 @@
-template_name = "empty"
+template_name = "Empty"
 
 [rokit]
 rojo = "rojo-rbx/rojo@7.7.0-rc.1"

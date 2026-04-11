@@ -1,0 +1,25 @@
+# Built artifacts
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock
+build/
+
+# Auto-generated for luau-lsp
+sourcemap.json
+
+# pesde — reinstalled via `pesde install`
+/Packages
+/ServerPackages
+/DevPackages
+pesde.lock
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# Env
+.env
+.env.local

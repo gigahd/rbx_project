@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: Lint, format, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rokit
+        uses: CompeyDev/setup-rokit@v0.1.2
+
+      - name: Install pesde packages
+        run: pesde install
+
+      - name: Generate network code
+        run: blink Network/Blink/config.Blink
+
+      - name: Generate sourcemap
+        run: rojo sourcemap default.project.json --output sourcemap.json
+
+      - name: Lint (Selene)
+        run: selene src/
+
+      - name: Format check (StyLua)
+        run: stylua --check src/ lune/
+
+      - name: Build place file
+        run: rojo build default.project.json --output game.rbxl
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-build
+          path: game.rbxl
+          retention-days: 7
+
+  deploy:
+    name: Publish to Roblox
+    needs: check
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rokit
+        uses: CompeyDev/setup-rokit@v0.1.2
+
+      - run: pesde install
+      - run: blink Network/Blink/config.Blink
+      - run: rojo build default.project.json --output game.rbxl
+
+      - name: Publish via rbxcloud
+        run: |
+          rbxcloud experience publish \
+            --filename game.rbxl \
+            --version-type Published \
+            --place-id ${{ vars.PLACE_ID }} \
+            --universe-id ${{ vars.UNIVERSE_ID }} \
+            --api-key ${{ secrets.RBXCLOUD_API_KEY }}

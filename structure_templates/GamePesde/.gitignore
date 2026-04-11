@@ -1,0 +1,29 @@
+# Built artifacts
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock
+build/
+
+# Auto-generated for luau-lsp
+sourcemap.json
+
+# pesde — reinstalled via `pesde install`
+/Packages
+/ServerPackages
+/DevPackages
+pesde.lock
+
+# Blink output — regenerated via `blink Network/Blink/config.Blink`
+/Network/Client
+/Network/Server
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# Env
+.env
+.env.local

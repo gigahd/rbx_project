@@ -5,9 +5,10 @@
     Steps:
         1. Regenerate Blink network code
         2. Install Wally packages
-        3. Generate package types for luau-lsp
+        3. Install pesde packages
         4. Generate sourcemap
-        5. Build .rbxl via Rojo
+        5. Generate package types for luau-lsp
+        6. Build .rbxl via Rojo
 
     Override output with `lune run build -- --output custom.rbxl`.
 ]]
@@ -25,10 +26,9 @@ for i, arg in args do
     end
 end
 
-
-
 run("blink", { "Network/Blink/config.Blink" }, "Generating network code")
 run("wally", { "install" }, "Installing Wally packages")
+run("pesde", { "install" }, "Installing pesde packages")
 run("rojo", { "sourcemap", "default.project.json", "--output", "sourcemap.json" }, "Generating sourcemap")
 run("wally-package-types", { "--sourcemap", "sourcemap.json", "Packages/" }, "Generating package types")
 run("rojo", { "build", "default.project.json", "--output", OUTPUT }, `Building {OUTPUT}`)

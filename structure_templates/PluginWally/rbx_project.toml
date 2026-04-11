@@ -1,0 +1,11 @@
+template_name = "PluginWally"
+
+[rokit]
+rojo = "rojo-rbx/rojo@7.7.0-rc.1"
+wally = ""
+wally-package-types = ""
+blink = "1Axen/blink"
+StyLua = ""
+lune = ""
+luau-lsp = ""
+moonwave = ""

@@ -19,6 +19,9 @@ jobs:
       - name: Install Wally packages
         run: wally install
 
+      - name: Install pesde packages
+        run: pesde install
+
       - name: Generate network code
         run: blink Network/Blink/config.Blink
 
@@ -57,6 +60,7 @@ jobs:
         uses: CompeyDev/setup-rokit@v0.1.2
 
       - run: wally install
+      - run: pesde install
       - run: blink Network/Blink/config.Blink
       - run: rojo build default.project.json --output game.rbxl
 

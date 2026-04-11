@@ -173,11 +173,6 @@ impl Rokit {
         self.tools.remove(name);
     }
 
-    /// Returns true if the spec pins a specific version (contains `@`).
-    pub fn has_version(spec: &str) -> bool {
-        spec.contains('@')
-    }
-
     /// Resolves the effective spec for a tool.
     /// If the value is empty, the key (short name) is the spec.
     pub fn resolve_spec<'a>(name: &'a str, spec: &'a str) -> &'a str {

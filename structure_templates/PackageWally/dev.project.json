@@ -1,0 +1,17 @@
+{
+  "name": "{{project_name}}",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+        "Packages": {
+            "$path": "Packages"
+        }
+    },
+    "ServerScriptService": {
+        "{{project_name}}": {
+            "$path": "src"
+        }
+    }
+  }
+}

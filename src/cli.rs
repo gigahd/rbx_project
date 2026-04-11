@@ -52,7 +52,7 @@ pub enum Command {
     /// Sync rbx_project.toml to tool config files (rokit.toml, wally.toml, pesde.toml)
     Sync,
 
-    /// Reconcile project state with rbx_project.toml
+    /// Reconcile tool config files (rokit.toml, wally.toml, pesde.toml) into rbx_project.toml
     Reconcile,
 }
 
@@ -455,9 +455,8 @@ fn handle_sync_command() -> Result<()> {
 }
 
 fn handle_reconcile_command() -> Result<()> {
-    log_step("Reconciling project state with rbx_project.toml");
-    let config = Config::from_toml(&PathBuf::from(config::CONFIG_NAME))?;
-    reconcile::run(&config)?;
+    log_step("Reconciling tool configs into rbx_project.toml");
+    reconcile::run()?;
     log_step("Reconciliation complete");
     Ok(())
 }
